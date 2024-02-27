@@ -26,21 +26,22 @@ def sample_data(spark):
     except ValueError as e:
         pytest.fail(f"Error fetching data from GitHub: {e}")
 
-    country_df = spark.read.csv(country_data, header=True, inferSchema=True)
-    full_df = spark.read.csv(full_data, header=True, inferSchema=True)
-    country_df.createOrReplaceTempView("test_country_df")
-    full_df.createOrReplaceTempView("test_full_df")
-
-    yield country_df, full_df
-
-def test_transformations_with_tables(spark, sample_data):
-    country_df, full_df = sample_data
-    result_df = perform_transformations("test_country_df", "test_full_df")
-    assert result_df.count() > 0
+    yield country_data, full_data
 
 def test_sql_transformations_with_tables(spark, sample_data):
-    country_df, full_df = sample_data
-    result_df = perform_transformations("test_country_df", "test_full_df")
+    country_data = sample_data
+    country_data_str = country_data.getvalue()
+    
+    result_df = perform_transformations(spark, country_data_str)
+    result_df.createOrReplaceTempView("test_table")
+    sql_result = spark.sql("SELECT * FROM test_table WHERE total_PovertyEst > 0")
+    
+    assert sql_result.count() > 0
+
+
+def test_sql_transformations_with_tables(spark, sample_data):
+    country_data, full_data = sample_data
+    result_df = perform_transformations(spark, country_data, full_data)
     result_df.createOrReplaceTempView("test_table")
     sql_result = spark.sql("SELECT * FROM test_table WHERE total_column1 > 0")
     assert sql_result.count() > 0

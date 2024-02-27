@@ -13,7 +13,7 @@ def fetch_data_from_github(url):
     if response.status_code == 200:
         return StringIO(response.text)
     else:
-        raise ValueError(f"Failed to fetch data from {url}")
+        raise ValueError(f"Failed to fetch data frm {url}")
 
 @pytest.fixture
 def sample_data(spark):

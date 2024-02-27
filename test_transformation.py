@@ -1,5 +1,6 @@
 import pytest
 from transformation import perform_transformations
+
 @pytest.fixture
 def sample_data(spark):
    country_data_path = "https://raw.githubusercontent.com/prathameshIX/poc-pytest/sandbox/sample_data/countyData.csv"
@@ -9,6 +10,7 @@ def sample_data(spark):
    country_df.createOrReplaceTempView("test_country_df")
    full_df.createOrReplaceTempView("test_full_df")
    yield country_df, full_df
+   
 def test_transformations_with_tables(spark, sample_data):
    country_df, full_df = sample_data
    result_df = perform_transformations("test_country_df", "test_full_df")

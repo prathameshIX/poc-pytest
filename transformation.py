@@ -16,22 +16,16 @@ def cleanup_temp_files(*file_paths):
         if file_path:
             os.remove(file_path)
 
-def perform_transformations(spark, data1, data2):
-    # Save the content of StringIO objects to temporary files
-    temp_path1 = save_stringio_to_temp_file(data1)
-    temp_path2 = save_stringio_to_temp_file(data2)
+def perform_transformations(spark, data):
+    # Read CSV data into a DataFrame
+    df = spark.read.csv(data, header=True, inferSchema=True)
 
-    try:
-        # Read CSV data into DataFrames
-        df1 = spark.read.csv(temp_path1, header=True, inferSchema=True)
-        df2 = spark.read.csv(temp_path2, header=True, inferSchema=True)
-
-        # Perform transformations
-        joined_df = df1.join(df2, on='countyCode')
-        grouped_df = joined_df.groupBy('countyCode').agg({'column1': 'sum', 'column2': 'avg'})
-        narrowed_df = grouped_df.select('countyCode', col('sum(column1)').alias('total_column1'), col('avg(column2)').alias('average_column2'))
+    # Perform transformations
+    joined_df = df.groupBy('countyCode').agg({'PovertyEst': 'sum', 'avgAnnCount': 'avg'})
+    narrowed_df = joined_df.select('countyCode', col('sum(PovertyEst)').alias('total_PovertyEst'), col('avg(avgAnnCount)').alias('average_avgAnnCount'))
     
-        return narrowed_df
+    return narrowed_df
+
 
     finally:
         # Clean up temporary files

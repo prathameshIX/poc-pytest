@@ -25,8 +25,3 @@ def perform_transformations(spark, data):
     narrowed_df = joined_df.select('countyCode', col('sum(PovertyEst)').alias('total_PovertyEst'), col('avg(avgAnnCount)').alias('average_avgAnnCount'))
     
     return narrowed_df
-
-
-    finally:
-        # Clean up temporary files
-        cleanup_temp_files(temp_path1, temp_path2)

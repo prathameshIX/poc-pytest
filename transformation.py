@@ -1,18 +1,25 @@
+import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
-from io import StringIO, BytesIO
-import requests
-import tempfile
+from io import StringIO
+import tempfile  # Added import for tempfile
+
+def save_stringio_to_temp_file(stringio_obj):
+    """Save the content of a StringIO object to a temporary file."""
+    with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.csv') as temp_file:
+        temp_file.write(stringio_obj.getvalue())
+        return temp_file.name
+
+def cleanup_temp_files(*file_paths):
+    """Delete temporary files."""
+    for file_path in file_paths:
+        if file_path:
+            os.remove(file_path)
 
 def perform_transformations(spark, data1, data2):
     # Save the content of StringIO objects to temporary files
-    with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.csv') as temp_file1:
-        temp_file1.write(data1.getvalue())
-        temp_path1 = temp_file1.name
-
-    with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.csv') as temp_file2:
-        temp_file2.write(data2.getvalue())
-        temp_path2 = temp_file2.name
+    temp_path1 = save_stringio_to_temp_file(data1)
+    temp_path2 = save_stringio_to_temp_file(data2)
 
     try:
         # Read CSV data into DataFrames
@@ -28,7 +35,4 @@ def perform_transformations(spark, data1, data2):
 
     finally:
         # Clean up temporary files
-        if temp_path1:
-            os.remove(temp_path1)
-        if temp_path2:
-            os.remove(temp_path2)
+        cleanup_temp_files(temp_path1, temp_path2)

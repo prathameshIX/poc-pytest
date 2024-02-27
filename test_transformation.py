@@ -28,10 +28,16 @@ def sample_data(spark):
 
     yield country_data, full_data
 
-def test_transformations_with_tables(spark, sample_data):
-    country_data, full_data = sample_data
-    result_df = perform_transformations(spark, country_data, full_data)
-    assert result_df.count() > 0
+def test_sql_transformations_with_tables(spark, sample_data):
+    country_data = sample_data
+    country_data_str = country_data.getvalue()
+    
+    result_df = perform_transformations(spark, country_data_str)
+    result_df.createOrReplaceTempView("test_table")
+    sql_result = spark.sql("SELECT * FROM test_table WHERE total_PovertyEst > 0")
+    
+    assert sql_result.count() > 0
+
 
 def test_sql_transformations_with_tables(spark, sample_data):
     country_data, full_data = sample_data

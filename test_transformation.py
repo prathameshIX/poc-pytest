@@ -13,7 +13,7 @@ def fetch_data_from_github(url):
     if response.status_code == 200:
         return StringIO(response.text)
     else:
-        raise ValueError(f"Failed to fetch data frm {url}")
+        raise ValueError(f"Failed to fetch data from {url}")
 
 @pytest.fixture
 def sample_data(spark):
@@ -26,21 +26,16 @@ def sample_data(spark):
     except ValueError as e:
         pytest.fail(f"Error fetching data from GitHub: {e}")
 
-    country_df = spark.read.csv(country_data, header=True, inferSchema=True)
-    full_df = spark.read.csv(full_data, header=True, inferSchema=True)
-    country_df.createOrReplaceTempView("test_country_df")
-    full_df.createOrReplaceTempView("test_full_df")
-
-    yield country_df, full_df
+    yield country_data, full_data
 
 def test_transformations_with_tables(spark, sample_data):
-    country_df, full_df = sample_data
-    result_df = perform_transformations("test_country_df", "test_full_df")
+    country_data, full_data = sample_data
+    result_df = perform_transformations(spark, country_data, full_data)
     assert result_df.count() > 0
 
 def test_sql_transformations_with_tables(spark, sample_data):
-    country_df, full_df = sample_data
-    result_df = perform_transformations("test_country_df", "test_full_df")
+    country_data, full_data = sample_data
+    result_df = perform_transformations(spark, country_data, full_data)
     result_df.createOrReplaceTempView("test_table")
     sql_result = spark.sql("SELECT * FROM test_table WHERE total_column1 > 0")
     assert sql_result.count() > 0
